@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis
+    command: redis-server --requirepass 770b1fadc4019d4de6b2fd32561beaa2c8cffa7837f43c85cbeff1e211c60702
+    ports:
+      - "6379:6378"
+  db:
+    image: postgres:11
+    restart: always
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: postgres
+  web:
+    build: .
+    command: uvicorn settings.asgi:application --host 0.0.0.0 --port 8000
+    volumes:
+    - .:/code
+    ports:
+    - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      DEBUG: 0
+      DEVELOP: 0
+      DB_NAME: insta_app
+      DB_USER: postgres
+      DB_PASSWORD: posgtres
+#      DB_HOST: localhost
+      DB_PORT: 5432
+      INST_CLIENT_ID: 735719413929311
+      INST_CLIENT_SECRET: c6434640d24f82e7e814aa4e1eb29522
+      INST_REDIRECT_URI: https://tornadogame.club/complete/instagram/
+      REDIS_PORT: 6378
+      REDIS_PASSWORD: 770b1fadc4019d4de6b2fd32561beaa2c8cffa7837f43c85cbeff1e211c60702
